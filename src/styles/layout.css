@@ -1,0 +1,206 @@
+/* Footer siempre abajo aunque el cuerpo sea corto */
+.layout {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.layout-body {
+    flex: 1;
+    padding: 16px;
+}
+
+/* ---------- Header ---------- */
+.layout-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    /* margin: 12px;  ← ELIMINAR */
+    padding: 12px 24px;
+    background: var(--color-principal);
+    color: var(--color-texto-claro);
+    border-radius: 0;
+    /* antes var(--radio) */
+    box-shadow: var(--sombra);
+}
+
+.layout-header__brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.layout-header__logo {
+    height: 48px;
+    width: auto;
+    flex-shrink: 0;
+}
+
+.layout-header__titles {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+    min-width: 0;
+}
+
+.layout-header__title {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.layout-header__subtitle {
+    font-size: 12px;
+    letter-spacing: 2px;
+}
+
+/* Zona derecha: institución + tema + GitHub */
+.layout-header__acciones {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+}
+
+.layout-header__institucion {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.layout-header__github {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    color: var(--color-texto-claro);
+    border-radius: 50%;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.layout-header__github:hover {
+    background: rgba(255, 255, 255, 0.14);
+    transform: scale(1.06);
+}
+
+/* Botón de cambio de tema */
+.layout-header__tema {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    color: var(--color-texto-claro);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.layout-header__tema:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: scale(1.06);
+}
+
+.layout-header__tema:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.65);
+}
+
+.layout-header__tema svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* ---------- Footer ---------- */
+.layout-footer {
+    /* margin: 12px;  ← ELIMINAR */
+    padding: 16px 24px;
+    background: var(--color-principal);
+    color: var(--color-texto-claro);
+    border-radius: 0;
+    /* antes var(--radio) */
+    font-size: 14px;
+}
+
+.layout-footer__help {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.layout-footer__btn {
+    padding: 6px 14px;
+    background: var(--color-texto-claro);
+    color: var(--color-principal);
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.layout-footer__btn:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+}
+
+.layout-footer__bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 12px;
+}
+
+.layout-footer__link {
+    color: var(--color-texto-claro);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 760px) {
+    .layout-header {
+        flex-wrap: wrap;
+        justify-content: center;
+        text-align: center;
+        padding: 12px 16px;
+    }
+
+    .layout-header__brand {
+        flex: 1 1 100%;
+        justify-content: center;
+    }
+
+    .layout-header__acciones {
+        flex: 1 1 100%;
+        justify-content: center;
+    }
+
+    .layout-header__institucion {
+        font-size: 16px;
+    }
+
+    .layout-header__title {
+        font-size: 16px;
+    }
+
+    .layout-header__logo {
+        height: 40px;
+    }
+}
+
+@media (max-width: 420px) {
+    .layout-header__institucion {
+        display: none;
+    }
+}

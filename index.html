@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Encuesta de Percepción</title>
+
+    <!-- Aplica el tema guardado antes de pintar (evita parpadeo) -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('tema');
+                if (t !== 'claro' && t !== 'oscuro') {
+                    t = window.matchMedia('(prefers-color-scheme: light)').matches
+                        ? 'claro'
+                        : 'oscuro';
+                }
+                document.documentElement.dataset.tema = t;
+            } catch (e) { /* sin acceso a localStorage */ }
+        })();
+    </script>
+</head>
+
+<body>
+    <!-- Contenedor principal donde React montará la aplicación -->
+    <div id="root"></div>
+
+    <!-- Carga del punto de entrada de React en Vite -->
+    <script type="module" src="/src/main.jsx"></script>
+</body>
+
+</html>

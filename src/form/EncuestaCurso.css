@@ -1,0 +1,432 @@
+/* =========================================
+   ENCUESTA DE CURSO (una tarjeta por curso)
+   Usa los tokens de tema de variables.css
+   ========================================= */
+
+.encuesta-curso {
+    --encuesta-primario: var(--acento-1);
+    --encuesta-primario-hover: var(--acento-2);
+    --encuesta-texto: var(--texto);
+    --encuesta-texto-secundario: var(--texto-suave);
+    --encuesta-borde: var(--borde);
+    --encuesta-fondo: var(--fondo-superficie);
+    --encuesta-fondo-suave: var(--fondo-suave);
+
+    width: 100%;
+    margin-bottom: 32px;
+    overflow: hidden;
+
+    color: var(--encuesta-texto);
+    background: var(--encuesta-fondo);
+    border: 1px solid var(--encuesta-borde);
+    border-radius: 14px;
+    box-shadow: var(--sombra);
+}
+
+/* =========================================
+   ENCABEZADO DEL CURSO
+   ========================================= */
+
+.encuesta-curso__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 22px 24px;
+    background: var(--encuesta-fondo);
+    border-bottom: 1px solid var(--encuesta-borde);
+}
+
+.encuesta-curso__codigo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    min-height: 32px;
+    padding: 5px 10px;
+
+    color: var(--acento-2);
+    background: rgba(99, 102, 241, 0.16);
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    border-radius: 7px;
+
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.025em;
+}
+
+.encuesta-curso__titulo {
+    margin: 0;
+
+    color: var(--texto);
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+/* =========================================
+   INFORMACIÓN DEL CURSO
+   ========================================= */
+
+.encuesta-curso__informacion {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 28px;
+
+    padding: 18px 24px;
+    background: var(--encuesta-fondo-suave);
+    border-bottom: 1px solid var(--encuesta-borde);
+}
+
+.encuesta-curso__informacion p {
+    margin: 0;
+
+    color: var(--encuesta-texto-secundario);
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.encuesta-curso__informacion strong {
+    color: var(--encuesta-texto);
+    font-weight: 600;
+}
+
+/* =========================================
+   INSTRUCCIONES
+   ========================================= */
+
+.encuesta-curso__instruccion {
+    padding: 18px 24px 14px;
+
+    color: var(--encuesta-texto-secundario);
+    font-size: 0.875rem;
+    line-height: 1.6;
+}
+
+/* =========================================
+   TABLA
+   ========================================= */
+
+.encuesta-curso__tabla-contenedor {
+    width: 100%;
+    overflow-x: auto;
+    padding: 0 24px 20px;
+
+    scrollbar-width: thin;
+    scrollbar-color: var(--borde) transparent;
+}
+
+.encuesta-curso__tabla {
+    width: 100%;
+    min-width: 720px;
+
+    border-collapse: separate;
+    border-spacing: 0;
+
+    font-size: 0.875rem;
+}
+
+.encuesta-curso__tabla th,
+.encuesta-curso__tabla td {
+    border-right: 1px solid var(--encuesta-borde);
+    border-bottom: 1px solid var(--encuesta-borde);
+}
+
+.encuesta-curso__tabla th:first-child,
+.encuesta-curso__tabla td:first-child {
+    border-left: 1px solid var(--encuesta-borde);
+}
+
+.encuesta-curso__tabla thead th {
+    padding: 14px 10px;
+
+    color: var(--texto-suave);
+    background: var(--fondo-superficie-2);
+
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.encuesta-curso__tabla thead th:first-child {
+    border-top-left-radius: 8px;
+}
+
+.encuesta-curso__tabla thead th:last-child {
+    border-top-right-radius: 8px;
+}
+
+.encuesta-curso__tabla tbody td {
+    padding: 14px 10px;
+    background: var(--encuesta-fondo);
+    transition: background-color 0.15s ease;
+}
+
+.encuesta-curso__tabla tbody tr:nth-child(even) td {
+    background: var(--fondo-superficie-2);
+}
+
+.encuesta-curso__tabla tbody tr:hover td {
+    background: var(--fondo-suave);
+}
+
+/* Ancho de columnas */
+
+.encuesta-curso__tabla .col-numero {
+    width: 52px;
+}
+
+.encuesta-curso__tabla .col-pregunta {
+    min-width: 260px;
+    text-align: left;
+}
+
+.encuesta-curso__tabla .col-opcion {
+    width: 92px;
+    min-width: 76px;
+}
+
+/* =========================================
+   NÚMERO DE PREGUNTA
+   ========================================= */
+
+.encuesta-curso__tabla .celda-numero {
+    color: var(--encuesta-texto-secundario);
+    text-align: center;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+/* =========================================
+   TEXTO DE LA PREGUNTA
+   ========================================= */
+
+.encuesta-curso__tabla .celda-pregunta {
+    min-width: 260px;
+
+    color: var(--texto);
+    font-size: 0.875rem;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+}
+
+/* =========================================
+   OPCIONES DE LA ESCALA
+   ========================================= */
+
+.encuesta-curso__tabla .col-opcion {
+    padding: 12px 6px;
+}
+
+.opcion__nombre,
+.opcion__valor {
+    display: block;
+}
+
+.opcion__nombre {
+    color: var(--texto-suave);
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.opcion__valor {
+    margin-top: 5px;
+    color: var(--texto);
+    font-size: 0.95rem;
+    font-weight: 800;
+}
+
+/* Colores de la escala (funcionan en ambos temas) */
+
+.encuesta-curso__tabla .opcion-1 .opcion__valor {
+    color: #ef4444;
+}
+
+.encuesta-curso__tabla .opcion-2 .opcion__valor {
+    color: #f97316;
+}
+
+.encuesta-curso__tabla .opcion-3 .opcion__valor {
+    color: #eab308;
+}
+
+.encuesta-curso__tabla .opcion-4 .opcion__valor {
+    color: #22c55e;
+}
+
+.encuesta-curso__tabla .opcion-5 .opcion__valor {
+    color: #16a34a;
+}
+
+/* =========================================
+   BOTONES DE SELECCIÓN
+   ========================================= */
+
+.encuesta-curso__tabla .celda-opcion {
+    padding: 8px 6px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.opcion-radio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    min-height: 42px;
+    cursor: pointer;
+}
+
+.opcion-radio input {
+    position: absolute;
+
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.opcion-radio__indicador {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 22px;
+    height: 22px;
+
+    background: var(--fondo-superficie);
+    border: 2px solid var(--borde);
+    border-radius: 50%;
+
+    transition:
+        border-color 0.15s ease,
+        background-color 0.15s ease,
+        box-shadow 0.15s ease,
+        transform 0.15s ease;
+}
+
+.opcion-radio:hover .opcion-radio__indicador {
+    border-color: var(--encuesta-primario);
+    transform: scale(1.08);
+}
+
+.opcion-radio input:checked+.opcion-radio__indicador {
+    background: var(--encuesta-primario);
+    border-color: var(--encuesta-primario);
+    box-shadow: inset 0 0 0 4px var(--fondo-superficie);
+}
+
+.opcion-radio input:focus-visible+.opcion-radio__indicador {
+    outline: none;
+    box-shadow: var(--foco);
+}
+
+/* Resalta la celda seleccionada */
+
+.encuesta-curso__tabla td:has(input:checked) {
+    background: rgba(99, 102, 241, 0.18) !important;
+}
+
+/* =========================================
+   PROGRESO DE RESPUESTAS
+   ========================================= */
+
+.encuesta-curso__progreso {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    padding: 18px 24px 22px;
+    border-top: 1px solid var(--encuesta-borde);
+}
+
+.encuesta-curso__progreso>span {
+    color: var(--encuesta-texto-secundario);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.encuesta-curso__barra {
+    width: 100%;
+    height: 7px;
+    overflow: hidden;
+
+    background: var(--borde);
+    border-radius: 999px;
+}
+
+.encuesta-curso__barra-valor {
+    height: 100%;
+
+    background: var(--degradado);
+    border-radius: inherit;
+
+    transition: width 0.25s ease;
+}
+
+/* =========================================
+   DISEÑO RESPONSIVE
+   ========================================= */
+
+@media (max-width: 768px) {
+    .encuesta-curso {
+        border-radius: 10px;
+    }
+
+    .encuesta-curso__header {
+        align-items: flex-start;
+        padding: 18px 16px;
+        gap: 10px;
+    }
+
+    .encuesta-curso__titulo {
+        font-size: 1.05rem;
+    }
+
+    .encuesta-curso__informacion {
+        flex-direction: column;
+        gap: 7px;
+        padding: 16px;
+    }
+
+    .encuesta-curso__instruccion {
+        padding: 16px 16px 12px;
+    }
+
+    .encuesta-curso__tabla-contenedor {
+        padding: 0 12px 16px;
+    }
+
+    .encuesta-curso__tabla {
+        min-width: 680px;
+    }
+
+    .encuesta-curso__tabla tbody td {
+        padding-top: 12px;
+        padding-bottom: 12px;
+    }
+
+    .encuesta-curso__progreso {
+        padding: 16px;
+    }
+}
+
+/* =========================================
+   PREFERENCIA POR MENOS ANIMACIONES
+   ========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .encuesta-curso *,
+    .encuesta-curso *::before,
+    .encuesta-curso *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}

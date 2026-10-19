@@ -1,0 +1,150 @@
+/* =========================================
+   VISTA DE ENCUESTA (contenedor en App.jsx)
+   ========================================= */
+
+.encuesta-pagina {
+    max-width: 1100px;
+    margin: 24px auto;
+    padding: 0 4px;
+}
+
+.encuesta-pagina__cabecera {
+    margin-bottom: 28px;
+    padding: 24px;
+    background: var(--fondo-superficie);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra);
+}
+
+/* Título + leyenda de niveles en la misma fila */
+.encuesta-pagina__encabezado {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.encuesta-pagina__presentacion {
+    flex: 1 1 320px;
+    min-width: 0;
+}
+
+/* ---------- Leyenda de los 5 niveles de satisfacción ---------- */
+.escala {
+    flex: 0 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    margin: 0;
+    padding: 14px 18px;
+    list-style: none;
+
+    background: var(--fondo-suave);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio-sm);
+}
+
+.escala__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.escala__valor {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    width: 26px;
+    height: 26px;
+
+    color: #fff;
+    background: var(--acento-1);
+    border-radius: 50%;
+
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+
+.escala__valor--1 { background: #ef4444; }
+.escala__valor--2 { background: #f97316; }
+.escala__valor--3 { background: #eab308; }
+.escala__valor--4 { background: #22c55e; }
+.escala__valor--5 { background: #16a34a; }
+
+.escala__nombre {
+    color: var(--texto-suave);
+    font-size: 0.85rem;
+    line-height: 1.3;
+}
+
+.encuesta-pagina__titulo {
+    margin: 0 0 14px;
+    font-size: clamp(1.3rem, 3.5vw, 2rem);
+    font-weight: 800;
+    line-height: 1.25;
+    background: var(--degradado);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.encuesta-pagina__meta {
+    margin: 0 0 6px;
+    color: var(--texto-suave);
+    font-size: 0.95rem;
+}
+
+.encuesta-pagina__meta strong {
+    color: var(--texto);
+}
+
+.encuesta-pagina__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.encuesta-pagina__vacio {
+    padding: 32px;
+    text-align: center;
+    color: var(--texto-suave);
+    background: var(--fondo-superficie);
+    border: 1px dashed var(--borde);
+    border-radius: var(--radio);
+}
+
+.encuesta-pagina__vacio strong {
+    color: var(--texto);
+}
+
+.encuesta-pagina__guardar {
+    width: 100%;
+    margin-top: 24px;
+    padding: 16px 24px;
+    font-size: 1.05rem;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 600px) {
+    .encuesta-pagina {
+        margin-top: 8px;
+    }
+
+    .encuesta-pagina__cabecera {
+        padding: 20px;
+    }
+
+    .escala {
+        flex: 1 1 100%;
+    }
+
+    .encuesta-pagina__acciones .btn {
+        flex: 1 1 auto;
+    }
+}
