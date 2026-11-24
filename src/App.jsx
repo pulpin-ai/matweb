@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Papa from 'papaparse'; // npm install papaparse
+import Papa from 'papaparse';
 import EncuestaCurso from './form/form.jsx';
 import { preguntasPercepcion, nivelesSatisfaccion } from './form/preguntas.js';
 import MenuOpciones from './components/MenuOpciones.jsx';
