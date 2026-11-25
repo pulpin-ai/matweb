@@ -51,8 +51,11 @@ function EncuestaCurso({
                 </p>
 
                 <p>
-                    <strong>Ciclo / Semestre:</strong>{' '}
-                    {ciclo} ({semestre})
+                    <strong>Ciclo:</strong> {ciclo}
+                </p>
+
+                <p>
+                    <strong>Semestre:</strong> {semestre}
                 </p>
 
                 {tipoEstudio && (
@@ -74,7 +77,7 @@ function EncuestaCurso({
                         <tr>
                             <th className="col-numero">N.º</th>
                             <th className="col-pregunta">
-                                Cursos / Preguntas de percepción
+                                Preguntas de percepción
                             </th>
 
                             {opcionesEscala.map((opcion, index) => (
@@ -158,9 +161,9 @@ function EncuestaCurso({
                         className="encuesta-curso__barra-valor"
                         style={{
                             width: `${preguntasPercepcion.length
-                                    ? (Object.keys(respuestas).length /
-                                        preguntasPercepcion.length) * 100
-                                    : 0
+                                ? (Object.keys(respuestas).length /
+                                    preguntasPercepcion.length) * 100
+                                : 0
                                 }%`
                         }}
                     />
