@@ -7,10 +7,10 @@ export const nivelesSatisfaccion = [
 ];
 
 export const preguntasPercepcion = [
-    "¿Está satisfecho con la redacción de la sumilla de las cartas descriptivas para el logro de aprendizajes de sus cursos?",
-    "¿Está satisfecho con la metodología que usted aplicó para el logro de aprendizaje de sus cursos?",
-    "¿Está satisfecho con la evaluación por competencias que usted aplicó a sus estudiantes en los cursos asignados?",
-    "¿Está satisfecho con el número de horas asignados a los cursos?",
-    "¿Está satisfecho con el número de créditos asignados a los cursos del plan de estudios?",
-    "¿Está satisfecho con la pertinencia de los cursos al perfil de egreso?"
+    "¿Está satisfecho con la redacción de la sumilla de la carta descriptiva para el logro de aprendizajes del curso?",
+    "¿Está satisfecho con la metodología que usted aplicó para el logro de aprendizaje dl curso?",
+    "¿Está satisfecho con la evaluación por competencias que usted aplicó a sus estudiantes en el curso asignado?",
+    "¿Está satisfecho con el número de horas asignados al curso?",
+    "¿Está satisfecho con el número de créditos asignados al curso en el plan de estudios?",
+    "¿Está satisfecho con la pertinencia del curso al perfil de egreso?"
 ];
