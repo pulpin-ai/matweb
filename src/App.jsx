@@ -446,6 +446,7 @@ function Contenido() {
                             docente={item.DOCENTE}
                             ciclo={item.CICLO}
                             semestre={item.SEMESTRE}
+                            cursosPendientes={cursosPendientes.length}
                             onChangeRespuestas={(respuestas, promedio) => {
                                 datosEncuestasRef.current[claveCurso(item)] = {
                                     respuestas,

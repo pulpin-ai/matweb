@@ -12,6 +12,7 @@ function EncuestaCurso({
     ciclo,
     semestre,
     tipoEstudio,
+    cursosPendientes = 0,
     onChangeRespuestas
 }) {
     const uid = useId();
@@ -144,9 +145,8 @@ function EncuestaCurso({
 
             <footer className="encuesta-curso__progreso">
                 <span>
-                    Preguntas respondidas: {Object.keys(respuestas).length}
-                    {' de '}
-                    {preguntasPercepcion.length}
+                    <strong>Cursos pendientes por evaluar:</strong>{' '}
+                    {cursosPendientes}
                 </span>
 
                 <div
