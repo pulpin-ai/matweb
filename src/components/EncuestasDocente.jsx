@@ -187,16 +187,20 @@ function EncuestasDocente({
 
             {estado === 'error' && (
                 <p className="encuestas__aviso">
-                    No se pudo verificar el estado de las encuestas. Puede
-                    responderlas igualmente; al terminar use{' '}
+                    No se pudo consultar la hoja de Google. Verifique que la
+                    implementación publicada del Apps Script incluya la función{' '}
+                    <strong>doGet</strong>, que se haya desplegado una versión
+                    nueva y que el acceso sea{' '}
+                    <strong>Cualquier persona</strong>. Puede responder los
+                    formularios igualmente; al terminar use{' '}
                     <strong>Actualizar estado</strong> para volver a consultar.
                 </p>
             )}
 
             {estado === 'sin-configurar' && (
                 <p className="encuestas__aviso">
-                    La verificación automática no está configurada. Los enlaces
-                    a los formularios funcionan igualmente.
+                    La conexión con la hoja de Google no está configurada. Los
+                    enlaces a los formularios funcionan igualmente.
                 </p>
             )}
 

@@ -9,11 +9,14 @@ import {
     consultarEncuestasCompletadas,
     encuestasConfiguradas
 } from './utils/encuestasApi.js';
-import { idFormulario, normalizar } from './utils/encuestas.js';
+import { normalizar } from './utils/encuestas.js';
 import './styles/variables.css';
 
 // Importación RAW de los CSVs
 import csvFormRaw from './data/form.csv?raw';
+import csvCargaRaw from './data/Carga_Académica.csv?raw';
+
+const SEMESTRE_ENCUESTAS = '2025-II';
 
 // ---------- Utilidades ----------
 
@@ -34,7 +37,7 @@ const leerCSV = (texto, columnasEsperadas, nombreArchivo) => {
     });
 };
 
-// form.csv: SEMESTRE, CICLO, CURSO, DOCENTE, LINK, PDF, ENCUESTA
+// Encuestas: form.csv (SEMESTRE, CICLO, CURSO, DOCENTE, LINK, PDF, ENCUESTA).
 const parsearFormCSV = (texto) =>
     leerCSV(texto, 7, 'form.csv')
         .map(([SEMESTRE, CICLO, CURSO, DOCENTE, LINK, PDF, ENCUESTA]) => ({
@@ -44,27 +47,38 @@ const parsearFormCSV = (texto) =>
             DOCENTE: DOCENTE?.trim(),
             LINK: LINK?.trim(),
             PDF: PDF?.trim(),
-            ENCUESTA: ENCUESTA?.trim(),
-            docenteNormalizado: normalizar(DOCENTE || '')
+            ENCUESTA: ENCUESTA?.trim()
         }))
-        .filter((asignacion) => asignacion.DOCENTE);
+        .filter(
+            (asignacion) =>
+                asignacion.DOCENTE &&
+                asignacion.SEMESTRE === SEMESTRE_ENCUESTAS
+        );
+
+// Fichas: Carga_Académica.csv (SEMESTRE, CICLO, CURSO, DOCENTE, LINK, PDF).
+const parsearCargaCSV = (texto) =>
+    leerCSV(texto, 6, 'Carga_Académica.csv')
+        .map(([SEMESTRE, CICLO, CURSO, DOCENTE, LINK, PDF]) => ({
+            SEMESTRE: SEMESTRE?.trim(),
+            CICLO: CICLO?.trim(),
+            CURSO: CURSO?.trim(),
+            DOCENTE: DOCENTE?.trim(),
+            LINK: LINK?.trim(),
+            PDF: PDF?.trim()
+        }))
+        .filter((ficha) => ficha.DOCENTE);
 
 // ---------- Índices precalculados ----------
 
-// docenteNormalizado -> { nombre: <texto oficial del CSV>, cursos: [asignaciones] }
-const construirIndiceDocentes = (asignaciones) => {
+// docenteNormalizado -> { nombre: <texto oficial del CSV> }
+const construirIndiceDocentes = (registros) => {
     const indice = new Map();
 
-    for (const asignacion of asignaciones) {
-        const clave = asignacion.docenteNormalizado;
-        const entrada = indice.get(clave);
-
-        if (entrada) {
-            entrada.cursos.push(asignacion);
-        } else {
+    for (const registro of registros) {
+        const clave = normalizar(registro.DOCENTE);
+        if (!indice.has(clave)) {
             indice.set(clave, {
-                nombre: asignacion.DOCENTE,
-                cursos: [asignacion]
+                nombre: registro.DOCENTE
             });
         }
     }
@@ -87,18 +101,14 @@ const agruparPorDocente = (registros) => {
     return indice;
 };
 
-const asignaciones = parsearFormCSV(csvFormRaw);
-const indiceDocentes = construirIndiceDocentes(asignaciones);
-const indiceFichas = agruparPorDocente(asignaciones);
-
-// id publicado del Google Form -> nombre del curso
-const mapaFormularios = new Map();
-for (const asignacion of asignaciones) {
-    const id = idFormulario(asignacion.ENCUESTA);
-    if (id && !mapaFormularios.has(id)) {
-        mapaFormularios.set(id, asignacion.CURSO);
-    }
-}
+const asignacionesEncuesta = parsearFormCSV(csvFormRaw);
+const fichas = parsearCargaCSV(csvCargaRaw);
+const indiceDocentes = construirIndiceDocentes([
+    ...asignacionesEncuesta,
+    ...fichas
+]);
+const indiceEncuestas = agruparPorDocente(asignacionesEncuesta);
+const indiceFichas = agruparPorDocente(fichas);
 
 // ---------- Componente ----------
 
@@ -166,7 +176,7 @@ function Contenido() {
         if (entrada) ingresarComoDocente(entrada);
     };
 
-    // ---- Login: valida el nombre contra form.csv ----
+    // ---- Login: valida el nombre contra ambos CSV ----
     const manejarIniciar = (e) => {
         e.preventDefault();
         const busqueda = normalizar(nombreDocente);
@@ -189,7 +199,7 @@ function Contenido() {
 
             if (coincidencias.length === 0) {
                 setLoginError(
-                    `No se encontraron cursos asignados a "${nombreDocente.trim()}".`
+                    `No se encontraron cursos ni fichas para "${nombreDocente.trim()}".`
                 );
                 setSugerenciasDocente([]);
                 return;
@@ -240,8 +250,7 @@ function Contenido() {
         try {
             const resultado = await consultarEncuestasCompletadas({
                 docente,
-                force,
-                mapaFormularios
+                force
             });
 
             if (solicitudId !== solicitudEncuestasRef.current) return;
@@ -325,14 +334,17 @@ function Contenido() {
         );
     }
 
-    const cursosDocente =
-        indiceDocentes.get(normalizar(docenteActivo))?.cursos ?? [];
+    const encuestasDocente =
+        indiceEncuestas.get(normalizar(docenteActivo)) ?? [];
+    const fichasDocente =
+        indiceFichas.get(normalizar(docenteActivo)) ?? [];
 
     if (vista === 'menu') {
         return (
             <MenuOpciones
                 nombreDocente={docenteActivo}
-                totalCursos={cursosDocente.length}
+                totalCursosEncuesta={encuestasDocente.length}
+                totalFichas={fichasDocente.length}
                 alSeleccionarOpcion={manejarSeleccionOpcion}
                 alCerrarSesion={reiniciarSesion}
             />
@@ -340,9 +352,6 @@ function Contenido() {
     }
 
     if (vista === 'fichas') {
-        const fichasDocente =
-            indiceFichas.get(normalizar(docenteActivo)) ?? [];
-
         return (
             <FichasLlenado
                 fichas={fichasDocente}
@@ -355,7 +364,7 @@ function Contenido() {
     // vista === 'encuesta'
     return (
         <EncuestasDocente
-            cursos={cursosDocente}
+            cursos={encuestasDocente}
             completadas={completadas}
             docente={docenteActivo}
             estado={estadoVerificacion}

@@ -41,26 +41,31 @@ function IconoFichas() {
 
 function MenuOpciones({
     nombreDocente,
-    totalCursos = 0,
+    totalCursosEncuesta = 0,
+    totalFichas = 0,
     alSeleccionarOpcion,
     alCerrarSesion
 }) {
-    const etiquetaCursos =
-        totalCursos === 1 ? '1 curso asignado' : `${totalCursos} cursos asignados`;
+    const etiquetaEncuestas =
+        totalCursosEncuesta === 1
+            ? '1 curso · 2025-II'
+            : `${totalCursosEncuesta} cursos · 2025-II`;
+    const etiquetaFichas =
+        totalFichas === 1 ? '1 ficha disponible' : `${totalFichas} fichas disponibles`;
 
     const opciones = [
         {
             id: 'encuesta',
             icono: <IconoEncuesta />,
             titulo: 'Encuesta de satisfacción',
-            meta: etiquetaCursos,
-            descripcion: 'Responder el formulario de Google de cada curso asignado'
+            meta: etiquetaEncuestas,
+            descripcion: 'Responder los formularios asignados del semestre 2025-II'
         },
         {
             id: 'fichas',
             icono: <IconoFichas />,
             titulo: 'Fichas de llenado',
-            meta: etiquetaCursos,
+            meta: etiquetaFichas,
             descripcion: 'Acceder a las hojas de cálculo y documentos PDF por curso'
         }
     ];

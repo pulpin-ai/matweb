@@ -4,13 +4,14 @@
 // 64 formularios, así que se puede prefijar desde la URL.
 export const ENTRY_NOMBRE = '1260702358';
 
-// Quita tildes, mayúsculas y espacios repetidos.
+// Quita tildes, normaliza mayúsculas y espacios, y conserva la ñ.
 export const normalizar = (s = '') =>
     s
+        .toLowerCase()
         .normalize('NFD')
+        .replace(/n\u0303/g, 'ñ')
         .replace(/[\u0300-\u036f]/g, '')
         .replace(/\s+/g, ' ')
-        .toLowerCase()
         .trim();
 
 // Clave única de una asignación dentro de un docente: curso + semestre.
