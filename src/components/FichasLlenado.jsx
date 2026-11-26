@@ -1,11 +1,14 @@
 import React from 'react';
 import '../styles/variables.css';
 import '../styles/fichas.css';
+import { ordenarPorPeriodo } from '../utils/encuestas.js';
 
 import excelIcon from '../assets/excel.svg';
 import pdfIcon from '../assets/pdf.png';
 
 function FichasLlenado({ fichas, docente, alVolver }) {
+    const fichasOrdenadas = [...fichas].sort(ordenarPorPeriodo);
+
     return (
         <div className="fichas">
             <header className="fichas__cabecera">
@@ -39,17 +42,17 @@ function FichasLlenado({ fichas, docente, alVolver }) {
                 </button>
             </header>
 
-            {fichas.length === 0 ? (
+            {fichasOrdenadas.length === 0 ? (
                 <p className="fichas__vacio">
                     No se encontraron fichas de llenado
                     registradas para este docente.
                 </p>
             ) : (
                 <div className="fichas__lista">
-                    {fichas.map((ficha, index) => (
+                    {fichasOrdenadas.map((ficha, index) => (
                         <article
                             className="ficha"
-                            key={`${ficha.CURSO} -${ficha.SEMESTRE} -${index} `}
+                            key={`${ficha.CURSO}-${ficha.SEMESTRE}-${index}`}
                         >
                             <div className="ficha__info">
                                 <div className="ficha__periodo">
@@ -74,7 +77,7 @@ function FichasLlenado({ fichas, docente, alVolver }) {
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         title="Abrir Google Sheets"
-                                        aria-label={`Abrir hoja de cálculo de ${ficha.CURSO} `}
+                                        aria-label={`Abrir hoja de cálculo de ${ficha.CURSO}`}
                                         className="ficha__enlace"
                                     >
                                         <img
@@ -96,7 +99,7 @@ function FichasLlenado({ fichas, docente, alVolver }) {
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         title="Abrir archivo PDF"
-                                        aria-label={`Abrir PDF de ${ficha.CURSO} `}
+                                        aria-label={`Abrir PDF de ${ficha.CURSO}`}
                                         className="ficha__enlace"
                                     >
                                         <img

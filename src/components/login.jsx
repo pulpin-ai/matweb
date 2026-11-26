@@ -9,6 +9,9 @@ function Login({
     nombreDocente,
     alCambiarNombre,
     alEnviar,
+    error = '',
+    sugerencias = [],
+    alSeleccionarSugerencia,
     titulo = 'Evaluación curricular 2021 - 2025'
 }) {
     return (
@@ -36,21 +39,49 @@ function Login({
                         </ol>
                     </div>
 
-                    <form onSubmit={alEnviar}>
+                    <form onSubmit={alEnviar} noValidate>
                         <div className="login__field">
                             <label className="login__label" htmlFor="nombre-docente">
                                 Nombre del Docente
                             </label>
                             <input
                                 id="nombre-docente"
-                                className="login__input"
+                                className={`login__input ${error ? 'login__input--error' : ''}`}
                                 type="text"
                                 value={nombreDocente}
                                 onChange={(e) => alCambiarNombre(e.target.value)}
                                 placeholder="Ej. YENINA APAZA OCHOA"
                                 autoComplete="off"
+                                aria-invalid={Boolean(error)}
+                                aria-describedby={error ? 'login-error' : undefined}
                                 required
                             />
+
+                            {error && (
+                                <p id="login-error" className="login__error" role="alert">
+                                    {error}
+                                </p>
+                            )}
+
+                            {sugerencias.length > 0 && (
+                                <div className="login__sugerencias">
+                                    <p className="login__sugerencias-titulo">
+                                        Coincidencias encontradas:
+                                    </p>
+                                    <div className="login__sugerencias-lista">
+                                        {sugerencias.map((nombre) => (
+                                            <button
+                                                key={nombre}
+                                                type="button"
+                                                className="login__sugerencia"
+                                                onClick={() => alSeleccionarSugerencia?.(nombre)}
+                                            >
+                                                {nombre}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <button type="submit" className="login__button">

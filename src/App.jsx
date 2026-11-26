@@ -1,30 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Papa from 'papaparse';
-import EncuestaCurso from './form/form.jsx';
-import { preguntasPercepcion, nivelesSatisfaccion } from './form/preguntas.js';
 import MenuOpciones from './components/MenuOpciones.jsx';
 import FichasLlenado from './components/FichasLlenado.jsx';
+import EncuestasDocente from './components/EncuestasDocente.jsx';
 import Layout from './components/Layout.jsx';
 import Login from './components/login.jsx';
-import { supabase } from './supabaseClient';
+import {
+    consultarEncuestasCompletadas,
+    encuestasConfiguradas
+} from './utils/encuestasApi.js';
+import { idFormulario, normalizar } from './utils/encuestas.js';
 import './styles/variables.css';
-import './styles/encuesta.css';
 
-// 1. Importación RAW de los CSVs
+// Importación RAW de los CSVs
 import csvFormRaw from './data/form.csv?raw';
-import csvCursosRaw from './data/cursos.csv?raw';
-import csvCargaRaw from './data/Carga_Académica.csv?raw';
 
 // ---------- Utilidades ----------
-
-// Quita tildes, mayúsculas y espacios repetidos
-const normalizar = (s = '') =>
-    s
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/\s+/g, ' ')
-        .toLowerCase()
-        .trim();
 
 // Lee un CSV respetando comillas y comas internas. Devuelve filas sin el encabezado.
 const leerCSV = (texto, columnasEsperadas, nombreArchivo) => {
@@ -43,76 +34,71 @@ const leerCSV = (texto, columnasEsperadas, nombreArchivo) => {
     });
 };
 
+// form.csv: SEMESTRE, CICLO, CURSO, DOCENTE, LINK, PDF, ENCUESTA
 const parsearFormCSV = (texto) =>
-    leerCSV(texto, 5, 'form.csv')
-        .map(([SEMESTRE, CICLO, codigo, CURSO, DOCENTE]) => ({
-            SEMESTRE: SEMESTRE?.trim(),
-            CICLO: CICLO?.trim(),
-            codigo: codigo?.trim(),
-            CURSO: CURSO?.trim(),
-            DOCENTE: DOCENTE?.trim(),
-            // 🚀 AQUÍ PRE-CALCULAS LA NORMALIZACIÓN UNA SOLA VEZ AL ARRANCAR:
-            docenteNormalizado: normalizar(DOCENTE || '')
-        }))
-        .filter(a => a.DOCENTE);
-
-// cursos.csv (Catálogo general)
-const parsearCursosCSV = (texto) => {
-    const catalogo = {};
-    leerCSV(texto, 2, 'cursos.csv').forEach(([codigo, curso]) => {
-        if (codigo?.trim()) catalogo[codigo.trim()] = curso?.trim();
-    });
-    return catalogo;
-};
-
-// Carga_Académica.csv (fichas: enlaces a Sheets y PDF por docente)
-const parsearCargaCSV = (texto) =>
-    leerCSV(texto, 6, 'Carga_Académica.csv')
-        .map(([SEMESTRE, CICLO, CURSO, DOCENTE, LINK, PDF]) => ({
+    leerCSV(texto, 7, 'form.csv')
+        .map(([SEMESTRE, CICLO, CURSO, DOCENTE, LINK, PDF, ENCUESTA]) => ({
             SEMESTRE: SEMESTRE?.trim(),
             CICLO: CICLO?.trim(),
             CURSO: CURSO?.trim(),
             DOCENTE: DOCENTE?.trim(),
             LINK: LINK?.trim(),
-            PDF: PDF?.trim()
+            PDF: PDF?.trim(),
+            ENCUESTA: ENCUESTA?.trim(),
+            docenteNormalizado: normalizar(DOCENTE || '')
         }))
-        .filter(f => f.DOCENTE);
+        .filter((asignacion) => asignacion.DOCENTE);
 
 // ---------- Índices precalculados ----------
-// Se construyen UNA sola vez al cargar el módulo para no recorrer ni
-// normalizar todo el CSV en cada búsqueda (login / cursos pendientes).
 
 // docenteNormalizado -> { nombre: <texto oficial del CSV>, cursos: [asignaciones] }
 const construirIndiceDocentes = (asignaciones) => {
     const indice = new Map();
+
     for (const asignacion of asignaciones) {
-        const clave = normalizar(asignacion.DOCENTE);
+        const clave = asignacion.docenteNormalizado;
         const entrada = indice.get(clave);
+
         if (entrada) {
             entrada.cursos.push(asignacion);
         } else {
-            indice.set(clave, { nombre: asignacion.DOCENTE, cursos: [asignacion] });
+            indice.set(clave, {
+                nombre: asignacion.DOCENTE,
+                cursos: [asignacion]
+            });
         }
     }
+
     return indice;
 };
 
-// docente (texto exacto del CSV) -> [registros]
+// docenteNormalizado -> [registros] (fichas de llenado)
 const agruparPorDocente = (registros) => {
     const indice = new Map();
+
     for (const registro of registros) {
-        const lista = indice.get(registro.DOCENTE);
+        const clave = normalizar(registro.DOCENTE);
+        const lista = indice.get(clave);
+
         if (lista) lista.push(registro);
-        else indice.set(registro.DOCENTE, [registro]);
+        else indice.set(clave, [registro]);
     }
+
     return indice;
 };
 
-const catalogoCursos = parsearCursosCSV(csvCursosRaw);
-const indiceDocentes = construirIndiceDocentes(parsearFormCSV(csvFormRaw));
-const indiceFichas = agruparPorDocente(parsearCargaCSV(csvCargaRaw));
+const asignaciones = parsearFormCSV(csvFormRaw);
+const indiceDocentes = construirIndiceDocentes(asignaciones);
+const indiceFichas = agruparPorDocente(asignaciones);
 
-const claveCurso = (c) => `${c.codigo}-${c.SEMESTRE}`;
+// id publicado del Google Form -> nombre del curso
+const mapaFormularios = new Map();
+for (const asignacion of asignaciones) {
+    const id = idFormulario(asignacion.ENCUESTA);
+    if (id && !mapaFormularios.has(id)) {
+        mapaFormularios.set(id, asignacion.CURSO);
+    }
+}
 
 // ---------- Componente ----------
 
@@ -121,59 +107,80 @@ function Contenido() {
     const [docenteActivo, setDocenteActivo] = useState('');
     const [iniciado, setIniciado] = useState(false);
     const [vista, setVista] = useState('menu'); // 'menu' | 'encuesta' | 'fichas'
-    const [cursosPendientes, setCursosPendientes] = useState([]);
+    const [completadas, setCompletadas] = useState(() => new Set());
+    const [estadoVerificacion, setEstadoVerificacion] = useState('idle');
     const [cargando, setCargando] = useState(false);
-    const [guardando, setGuardando] = useState(false);
-    const [ipUsuario, setIpUsuario] = useState('');
+    const [loginError, setLoginError] = useState('');
+    const [sugerenciasDocente, setSugerenciasDocente] = useState([]);
 
-    const datosEncuestasRef = useRef({});
-    const guardandoRef = useRef(false); // evita doble envío (setState es asíncrono)
-
-    // Referencias frescas para el listener de historial (evita cierres obsoletos)
+    // Referencia fresca para el listener de historial (evita cierres obsoletos)
     const docenteRef = useRef(docenteActivo);
-    const cursosPendientesRef = useRef(cursosPendientes);
+    // Identificador incremental para ignorar respuestas JSONP obsoletas
+    const solicitudEncuestasRef = useRef(0);
 
-    useEffect(() => { docenteRef.current = docenteActivo; }, [docenteActivo]);
-    useEffect(() => { cursosPendientesRef.current = cursosPendientes; }, [cursosPendientes]);
+    useEffect(() => {
+        docenteRef.current = docenteActivo;
+    }, [docenteActivo]);
 
     // Entrada inicial del historial: "login"
     useEffect(() => {
         window.history.replaceState({ pantalla: 'login' }, '');
     }, []);
 
-    // Capturar IP para la telemetría
-    useEffect(() => {
-        fetch('https://api.ipify.org?format=json')
-            .then(res => res.json())
-            .then(data => setIpUsuario(data.ip))
-            .catch(() => setIpUsuario('Desconocida'));
-    }, []);
-
     const reiniciarSesion = () => {
+        solicitudEncuestasRef.current += 1;
         setIniciado(false);
         setVista('menu');
         setNombreDocente('');
         setDocenteActivo('');
-        setCursosPendientes([]);
-        datosEncuestasRef.current = {};
+        setCompletadas(new Set());
+        setEstadoVerificacion('idle');
+        setCargando(false);
+        setLoginError('');
+        setSugerenciasDocente([]);
         window.history.pushState({ pantalla: 'login' }, '');
     };
 
-    // ---- Login: solo valida contra el CSV. NO toca Supabase. ----
+    const ingresarComoDocente = (entrada) => {
+        solicitudEncuestasRef.current += 1;
+        setLoginError('');
+        setSugerenciasDocente([]);
+        setCompletadas(new Set());
+        setEstadoVerificacion('idle');
+        setCargando(false);
+        setDocenteActivo(entrada.nombre);
+        setNombreDocente(entrada.nombre);
+        setVista('menu');
+        setIniciado(true);
+        window.history.pushState({ pantalla: 'menu' }, '');
+    };
+
+    const manejarCambioNombre = (valor) => {
+        setNombreDocente(valor);
+        if (loginError) setLoginError('');
+        if (sugerenciasDocente.length > 0) setSugerenciasDocente([]);
+    };
+
+    const manejarSeleccionSugerencia = (nombreExacto) => {
+        const entrada = indiceDocentes.get(normalizar(nombreExacto));
+        if (entrada) ingresarComoDocente(entrada);
+    };
+
+    // ---- Login: valida el nombre contra form.csv ----
     const manejarIniciar = (e) => {
         e.preventDefault();
         const busqueda = normalizar(nombreDocente);
 
         if (!busqueda) {
-            alert('Ingrese el nombre del docente.');
+            setLoginError('Ingrese el nombre del docente.');
+            setSugerenciasDocente([]);
             return;
         }
 
         // 1) Coincidencia exacta del nombre normalizado: O(1) sobre el índice.
         let entrada = indiceDocentes.get(busqueda);
 
-        // 2) Fallback: búsqueda parcial solo sobre los nombres ÚNICOS (~145),
-        //    no sobre las 372 filas del CSV, y sin re-normalizar en cada paso.
+        // 2) Fallback: búsqueda parcial solo sobre los nombres ÚNICOS.
         if (!entrada) {
             const coincidencias = [];
             for (const [clave, valor] of indiceDocentes) {
@@ -181,7 +188,10 @@ function Contenido() {
             }
 
             if (coincidencias.length === 0) {
-                alert(`No se encontraron cursos asignados a "${nombreDocente}".`);
+                setLoginError(
+                    `No se encontraron cursos asignados a "${nombreDocente.trim()}".`
+                );
+                setSugerenciasDocente([]);
                 return;
             }
 
@@ -192,67 +202,79 @@ function Contenido() {
                 if (exacto) {
                     entrada = exacto[1];
                 } else {
-                    alert('Hay varios docentes con ese nombre. Escriba su nombre completo.');
+                    const nombres = coincidencias
+                        .slice(0, 6)
+                        .map(([, valor]) => valor.nombre);
+                    setSugerenciasDocente(nombres);
+                    setLoginError(
+                        coincidencias.length > 6
+                            ? 'Hay varios docentes con ese nombre. Escriba su nombre completo o seleccione uno:'
+                            : 'Hay varios docentes con ese nombre. Seleccione el suyo:'
+                    );
                     return;
                 }
             }
         }
 
-        datosEncuestasRef.current = {};
-        setCursosPendientes([]);
-        setDocenteActivo(entrada.nombre);
-        setVista('menu');
-        setIniciado(true); // → muestra el menú
-        window.history.pushState({ pantalla: 'menu' }, '');
+        ingresarComoDocente(entrada);
     };
 
-    // ---- Al elegir "Encuesta": consulta Supabase y calcula pendientes ----
-    const cargarPendientes = async ({ desdeHistorial = false, docente = docenteActivo } = {}) => {
+    // ---- Al elegir "Encuesta": consulta el Apps Script ----
+    const cargarEncuestas = async ({
+        registrarHistorial = true,
+        docente = docenteActivo,
+        force = false
+    } = {}) => {
+        if (!docente) return;
+
+        const solicitudId = ++solicitudEncuestasRef.current;
+
+        if (registrarHistorial) {
+            window.history.pushState({ pantalla: 'encuesta' }, '');
+        }
+
+        setVista('encuesta');
         setCargando(true);
+        setEstadoVerificacion(encuestasConfiguradas ? 'cargando' : 'sin-configurar');
+
         try {
-            const { data: evaluados, error } = await supabase
-                .from('respuestas_encuestas')
-                .select('codigo_curso, semestre')
-                .eq('docente', docente);
+            const resultado = await consultarEncuestasCompletadas({
+                docente,
+                force,
+                mapaFormularios
+            });
 
-            if (error) throw error;
+            if (solicitudId !== solicitudEncuestasRef.current) return;
 
-            const clavesEvaluadas = new Set(
-                evaluados.map(e => `${e.codigo_curso}-${e.semestre}`)
-            );
-
-            // O(k): recorremos solo los cursos de este docente, no las 372 filas.
-            const cursosDocente = indiceDocentes.get(normalizar(docente))?.cursos ?? [];
-            const pendientes = cursosDocente.filter(
-                c => !clavesEvaluadas.has(claveCurso(c))
-            );
-
-            datosEncuestasRef.current = {}; // los formularios se montan en blanco
-            setCursosPendientes(pendientes);
-            setVista('encuesta');
-
-            if (!desdeHistorial) {
-                window.history.pushState({ pantalla: 'encuesta' }, '');
+            if (resultado) {
+                setCompletadas(resultado);
+                setEstadoVerificacion('ok');
+            } else {
+                setCompletadas(new Set());
+                setEstadoVerificacion('sin-configurar');
             }
-        } catch (err) {
-            console.error('Error al consultar Supabase:', err);
-            alert(`Error al verificar registros en la base de datos: ${err.message || err.details || 'Error de conexión'}`);
-            // Se queda en el menú; las Fichas siguen disponibles.
+        } catch (error) {
+            if (solicitudId !== solicitudEncuestasRef.current) return;
+            console.error('Error al consultar las encuestas:', error);
+            setCompletadas(new Set());
+            setEstadoVerificacion('error');
         } finally {
-            setCargando(false);
+            if (solicitudId === solicitudEncuestasRef.current) {
+                setCargando(false);
+            }
         }
     };
 
     const manejarSeleccionOpcion = (opcion) => {
         if (opcion === 'encuesta') {
-            cargarPendientes();
+            cargarEncuestas();
         } else {
             setVista(opcion);
             window.history.pushState({ pantalla: opcion }, '');
         }
     };
 
-    // ---- Botón atrás del navegador: vuelve a la pantalla anterior ----
+    // ---- Botón atrás del navegador ----
     useEffect(() => {
         const alRetroceder = (evento) => {
             const destino = evento.state?.pantalla ?? 'login';
@@ -273,10 +295,11 @@ function Contenido() {
 
             setIniciado(true);
 
-            // Al volver a "encuesta" (p. ej. con el botón adelante) recargamos
-            // los pendientes si no están en memoria.
-            if (destino === 'encuesta' && cursosPendientesRef.current.length === 0) {
-                cargarPendientes({ desdeHistorial: true, docente: docenteRef.current });
+            if (destino === 'encuesta') {
+                cargarEncuestas({
+                    registrarHistorial: false,
+                    docente: docenteRef.current
+                });
                 return;
             }
 
@@ -287,111 +310,39 @@ function Contenido() {
         return () => window.removeEventListener('popstate', alRetroceder);
     }, []);
 
-    const manejarGuardarEncuestas = async () => {
-        if (guardandoRef.current) return;
-
-        // Validar que TODAS las encuestas estén completas antes de insertar
-        const incompletas = cursosPendientes.filter(item => {
-            const info = datosEncuestasRef.current[claveCurso(item)];
-            return (
-                !info ||
-                !info.respuestas ||
-                Object.keys(info.respuestas).length < preguntasPercepcion.length ||
-                !(info.promedio > 0)
-            );
-        });
-
-        if (incompletas.length > 0) {
-            const lista = incompletas
-                .map(c => `• ${c.codigo} - ${catalogoCursos[c.codigo] || c.CURSO}`)
-                .join('\n');
-            alert(`Faltan encuestas por completar:\n\n${lista}`);
-            return;
-        }
-
-        guardandoRef.current = true;
-        setGuardando(true);
-
-        try {
-            const userAgent = navigator.userAgent;
-
-            // La fecha/hora NO se envía: la genera la base de datos (DEFAULT now()).
-            const registrosParaInsertar = cursosPendientes.map(item => {
-                const info = datosEncuestasRef.current[claveCurso(item)];
-                return {
-                    docente: item.DOCENTE,
-                    codigo_curso: item.codigo,
-                    semestre: item.SEMESTRE,
-                    ciclo: item.CICLO,
-                    puntaje_promedio: info.promedio,
-                    respuestas: info.respuestas,
-                    user_agent: userAgent,
-                    ip_registro: ipUsuario
-                };
-            });
-
-            // Requiere UNIQUE (docente, codigo_curso, semestre) en la tabla.
-            const { error } = await supabase
-                .from('respuestas_encuestas')
-                .upsert(registrosParaInsertar, {
-                    onConflict: 'docente,codigo_curso,semestre',
-                    ignoreDuplicates: true
-                });
-
-            if (error) throw error;
-
-            alert('¡Encuestas registradas exitosamente!');
-            reiniciarSesion();
-
-        } catch (error) {
-            console.error('Error al guardar:', error);
-
-            const detalle = [
-                error.code && `código ${error.code}`,
-                error.message,
-                error.hint
-            ].filter(Boolean).join(' · ');
-
-            alert(
-                'Ocurrió un problema al guardar los resultados.\n\n' +
-                (detalle || 'Error de conexión') +
-                '\n\nSus respuestas siguen en pantalla; intente nuevamente.'
-            );
-        } finally {
-            guardandoRef.current = false;
-            setGuardando(false);
-        }
-    };
-
     // ---------- Vistas ----------
 
     if (!iniciado) {
         return (
             <Login
                 nombreDocente={nombreDocente}
-                alCambiarNombre={setNombreDocente}
+                alCambiarNombre={manejarCambioNombre}
                 alEnviar={manejarIniciar}
+                error={loginError}
+                sugerencias={sugerenciasDocente}
+                alSeleccionarSugerencia={manejarSeleccionSugerencia}
             />
         );
     }
 
+    const cursosDocente =
+        indiceDocentes.get(normalizar(docenteActivo))?.cursos ?? [];
+
     if (vista === 'menu') {
         return (
-            <>
-                <MenuOpciones
-                    nombreDocente={docenteActivo}
-                    alSeleccionarOpcion={manejarSeleccionOpcion}
-                    alCerrarSesion={reiniciarSesion}
-                />
-                {cargando && (
-                    <p className="app-cargando">Cargando encuestas...</p>
-                )}
-            </>
+            <MenuOpciones
+                nombreDocente={docenteActivo}
+                totalCursos={cursosDocente.length}
+                alSeleccionarOpcion={manejarSeleccionOpcion}
+                alCerrarSesion={reiniciarSesion}
+            />
         );
     }
 
     if (vista === 'fichas') {
-        const fichasDocente = indiceFichas.get(docenteActivo) ?? [];
+        const fichasDocente =
+            indiceFichas.get(normalizar(docenteActivo)) ?? [];
+
         return (
             <FichasLlenado
                 fichas={fichasDocente}
@@ -403,70 +354,17 @@ function Contenido() {
 
     // vista === 'encuesta'
     return (
-        <div className="encuesta-pagina">
-            <header className="encuesta-pagina__cabecera">
-                <div className="encuesta-pagina__encabezado">
-                    <div className="encuesta-pagina__presentacion">
-                        <h2 className="encuesta-pagina__titulo">Encuesta de Percepción Docente</h2>
-                        <p className="encuesta-pagina__meta"><strong>Docente:</strong> {docenteActivo}</p>
-                        <p className="encuesta-pagina__meta"><strong>Cursos pendientes por evaluar:</strong> {cursosPendientes.length}</p>
-                    </div>
-
-                    <ul className="escala" aria-label="Niveles de satisfacción">
-                        {nivelesSatisfaccion.map((nivel) => (
-                            <li className="escala__item" key={nivel.valor}>
-                                <span className={`escala__valor escala__valor--${nivel.valor}`}>
-                                    {nivel.valor}
-                                </span>
-                                <span className="escala__nombre">{nivel.nombre}</span>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-
-                <div className="encuesta-pagina__acciones">
-                    <button type="button" className="btn btn--secundario" onClick={() => window.history.back()}>
-                        ← Volver al menú
-                    </button>
-                    <button type="button" className="btn btn--peligro" onClick={reiniciarSesion}>
-                        Salir
-                    </button>
-                </div>
-            </header>
-
-            {cursosPendientes.length === 0 ? (
-                <p className="encuesta-pagina__vacio">Ya completaste todas tus encuestas. Puedes revisar tus <strong>Fichas de Llenado</strong> en el menú.</p>
-            ) : (
-                <>
-                    {cursosPendientes.map((item) => (
-                        <EncuestaCurso
-                            key={claveCurso(item)}
-                            codigo={item.codigo}
-                            curso={catalogoCursos[item.codigo] || item.CURSO}
-                            docente={item.DOCENTE}
-                            ciclo={item.CICLO}
-                            semestre={item.SEMESTRE}
-                            cursosPendientes={cursosPendientes.length}
-                            onChangeRespuestas={(respuestas, promedio) => {
-                                datosEncuestasRef.current[claveCurso(item)] = {
-                                    respuestas,
-                                    promedio
-                                };
-                            }}
-                        />
-                    ))}
-
-                    <button
-                        type="button"
-                        className="btn btn--primario encuesta-pagina__guardar"
-                        onClick={manejarGuardarEncuestas}
-                        disabled={guardando}
-                    >
-                        {guardando ? 'Registrando en base de datos...' : 'Guardar y Finalizar Encuestas'}
-                    </button>
-                </>
-            )}
-        </div>
+        <EncuestasDocente
+            cursos={cursosDocente}
+            completadas={completadas}
+            docente={docenteActivo}
+            estado={estadoVerificacion}
+            cargando={cargando}
+            alVolver={() => window.history.back()}
+            alActualizar={() =>
+                cargarEncuestas({ force: true, registrarHistorial: false })
+            }
+        />
     );
 }
 

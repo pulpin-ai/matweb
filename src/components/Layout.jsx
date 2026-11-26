@@ -5,6 +5,8 @@ import '../styles/layout.css';
 // Coloca tu logo en src/assets/logo_fismat.png
 import logoFismat from '../assets/logo_fismat.png';
 
+const ANIO_ACTUAL = new Date().getFullYear();
+
 // Iconos del botón de tema
 function IconoSol() {
     return (
@@ -109,7 +111,7 @@ function Layout({
 
                 <div className="layout-footer__bottom">
                     <a href={`mailto:${correoAyuda}`} className="layout-footer__link">AYUDA</a>
-                    <span>© {new Date().getFullYear()} {institucion}. Todos los derechos reservados.</span>
+                    <span>© {ANIO_ACTUAL} {institucion}. Todos los derechos reservados.</span>
                 </div>
             </footer>
         </div>

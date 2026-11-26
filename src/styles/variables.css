@@ -11,23 +11,25 @@
     --color-principal: #0a0141;
     --color-texto-claro: #ffffff;
 
-    /* Acentos / degradado (paleta del login) */
+    /* Acento único y estados semánticos */
     --acento-1: #6366f1;
-    --acento-2: #a855f7;
-    --acento-3: #ec4899;
-    --degradado: linear-gradient(90deg, var(--acento-1), var(--acento-2));
-    --degradado-hover: linear-gradient(90deg, #4f46e5, #9333ea);
+    --acento-2: #4f46e5;
+    --acento-3: #e11d48;
+    --exito: #16a34a;
+    --aviso: #d97706;
+    --degradado: var(--acento-1);
+    --degradado-hover: var(--acento-2);
 
     /* Tema OSCURO (por defecto) */
-    --fondo: #171c33;
-    --fondo-superficie: #0b1220;
-    --fondo-superficie-2: #0f172a;
-    --fondo-suave: rgba(15, 23, 42, 0.5);
-    --borde: #1e293b;
-    --texto: #ffffff;
+    --fondo: #111526;
+    --fondo-superficie: #0b1020;
+    --fondo-superficie-2: #141b30;
+    --fondo-suave: rgba(148, 163, 184, 0.08);
+    --borde: rgba(148, 163, 184, 0.16);
+    --texto: #f8fafc;
     --texto-suave: #94a3b8;
-    --sombra: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
-    --foco: 0 0 0 3px rgba(168, 85, 247, 0.55);
+    --sombra: 0 12px 28px -12px rgba(0, 0, 0, 0.45);
+    --foco: 0 0 0 3px rgba(99, 102, 241, 0.45);
 
     color-scheme: dark;
 }
